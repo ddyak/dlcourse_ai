@@ -16,8 +16,6 @@ def binary_classification_metrics(prediction, ground_truth):
     fp = np.sum(prediction[ground_truth == False] == True)
     fn = np.sum(prediction[ground_truth == True] == False)
     
-    print(tp, tn, fp, fn)
-    
     eps = 1e-10 # for numerical stability
     
     precision = tp / (tp + fp + eps)
@@ -39,5 +37,5 @@ def multiclass_accuracy(prediction, ground_truth):
     Returns:
     accuracy - ratio of accurate predictions to total samples
     '''
-    # TODO: Implement computing accuracy
-    return 0
+
+    return (prediction == ground_truth).sum() / len(prediction)

@@ -113,8 +113,6 @@ class KNN:
         num_test = dists.shape[0]
         pred = np.zeros(num_test, np.bool)
         for i in range(num_test):
-            # TODO: Implement choosing best class based on k
-            # nearest training samples
             idx = dists[i].argsort()[:self.k]
             values, counts = np.unique(self.train_y[idx], return_counts=True)
             pred[i] = values[np.argmax(counts)]
@@ -137,7 +135,8 @@ class KNN:
         num_test = dists.shape[0]
         pred = np.zeros(num_test, np.int)
         for i in range(num_test):
-            # TODO: Implement choosing best class based on k
-            # nearest training samples
-            pass
+            idx = dists[i].argsort()[:self.k]
+            values, counts = np.unique(self.train_y[idx], return_counts=True)
+            pred[i] = values[np.argmax(counts)]
+
         return pred
