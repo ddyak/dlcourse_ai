@@ -114,8 +114,7 @@ class KNN:
         pred = np.zeros(num_test, np.bool)
         for i in range(num_test):
             idx = dists[i].argsort()[:self.k]
-            values, counts = np.unique(self.train_y[idx], return_counts=True)
-            pred[i] = values[np.argmax(counts)]
+            pred[i] = np.argmax(np.bincount(self.train_y[idx]))
                
         return pred
 
@@ -132,11 +131,9 @@ class KNN:
            for every test sample
         '''
         num_test = dists.shape[0]
-        num_test = dists.shape[0]
         pred = np.zeros(num_test, np.int)
         for i in range(num_test):
             idx = dists[i].argsort()[:self.k]
-            values, counts = np.unique(self.train_y[idx], return_counts=True)
-            pred[i] = values[np.argmax(counts)]
+            pred[i] = np.argmax(np.bincount(self.train_y[idx]))
 
         return pred
