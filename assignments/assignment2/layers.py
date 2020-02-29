@@ -139,10 +139,9 @@ class ReLULayer:
         """
         # TODO: Implement backward pass
         # Your final implementation shouldn't have any loops
-        X = self.X.copy()
-        X[X <= 0] = 0
-        X[X > 0]  = 1
-        d_result = d_out * X
+        copy_d_out = d_out.copy()
+        copy_d_out[self.X <= 0] = 0
+        d_result = copy_d_out
         
         return d_result
 
@@ -186,8 +185,8 @@ class FullyConnectedLayer:
 
         # It should be pretty similar to linear classifier from
         # the previous assignment
-        self.B.grad = d_out.sum(axis=0, keepdims=True)
-        self.W.grad = self.X.T.dot(d_out)
+        self.B.grad += d_out.sum(axis=0, keepdims=True)
+        self.W.grad += self.X.T.dot(d_out)
         d_input = d_out.dot(self.W.value.T)
 
         return d_input

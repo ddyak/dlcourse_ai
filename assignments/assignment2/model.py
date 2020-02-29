@@ -53,19 +53,13 @@ class TwoLayerNet:
         grad_output_layer = self.output_layer.backward(dprediction)
         grad_relu_layer   = self.relu.backward(grad_output_layer)
         grad_input_layer  = self.input_layer.backward(grad_relu_layer)
-        
-        self.W_out = self.output_layer.params()['W']
-        self.B_out = self.output_layer.params()['B']
-        self.W_in = self.input_layer.params()['W']
-        self.B_in = self.input_layer.params()['B']
-        
+                
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        loss_l2_in, grad_l2_in = l2_regularization(self.W_in.value, self.reg)
-        loss_l2_out, grad_l2_out = l2_regularization(self.W_out.value, self.reg)
-        loss += loss_l2_in + loss_l2_out
-        self.W_out.grad += grad_l2_out
-        self.W_in.grad += grad_l2_in
+        for key, param in self.params().items():
+            loss_l2, grad_l2 = l2_regularization(param.value, self.reg)
+            loss += loss_l2
+            param.grad += grad_l2
         
         return loss
 
@@ -79,12 +73,10 @@ class TwoLayerNet:
         Returns:
           y_pred, np.array of int (test_samples)
         """
-        pred = np.zeros(X.shape[0], np.int)
         to_relu = self.input_layer.forward(X)
         to_output_layer = self.relu.forward(to_relu)
         weights = self.output_layer.forward(to_output_layer)
-        probs = softmax(weights)
-        pred = np.argmax(probs, axis=-1)
+        pred = np.argmax(weights, axis=-1)
         
         return pred
 
