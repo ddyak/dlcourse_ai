@@ -1,6 +1,30 @@
 import numpy as np
 
 
+def softmax(predictions):
+    '''
+    Computes probabilities from scores
+    Arguments:
+      predictions, np array, shape is either (N) or (batch_size, N) -
+        classifier output
+    Returns:
+      probs, np array of the same shape as predictions - 
+        probability for every class, 0..1
+    '''
+    # TODO implement softmax
+    # Your final implementation shouldn't have any loops
+
+    if predictions.ndim == 1:
+        norm_pred = predictions - np.max(predictions)
+        exp_sum = np.sum(np.exp(norm_pred))
+    else:
+        norm_pred = predictions - np.max(predictions, axis=1)[:, np.newaxis]
+        exp_sum = np.sum(np.exp(norm_pred), axis=1)[:, np.newaxis]
+    probs = np.exp(norm_pred) / exp_sum
+    
+    return probs
+
+
 def l2_regularization(W, reg_strength):
     """
     Computes L2 regularization loss on weights and its gradient
@@ -14,8 +38,34 @@ def l2_regularization(W, reg_strength):
       gradient, np.array same shape as W - gradient of weight by l2 loss
     """
     # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    loss = reg_strength * (W ** 2).sum()
+    grad = 2 * reg_strength * W
+
     return loss, grad
+
+
+def cross_entropy_loss(probs, target_index):
+    '''
+    Computes cross-entropy loss
+    Arguments:
+      probs, np array, shape is either (N) or (batch_size, N) -
+        probabilities for every class
+      target_index: np array of int, shape is (1) or (batch_size) -
+        index of the true class for given sample(s)
+    Returns:
+      loss: single value
+    '''
+    # TODO implement cross-entropy
+    # Your final implementation shouldn't have any loops
+
+    if probs.ndim == 1:
+        loss = -np.log(probs[target_index])
+    else:
+        target_index = target_index.flatten()
+        str_index_arr = np.arange(target_index.shape[0])
+        loss = -np.mean(np.log(probs[(str_index_arr, target_index)]))
+    
+    return loss
 
 
 def softmax_with_cross_entropy(preds, target_index):
@@ -34,9 +84,21 @@ def softmax_with_cross_entropy(preds, target_index):
       dprediction, np array same shape as predictions - gradient of predictions by loss value
     """
     # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    probs = softmax(preds)
+    loss = cross_entropy_loss(probs, target_index)
 
-    return loss, d_preds
+    if probs.ndim == 1:
+        subtr = np.zeros_like(probs)
+        subtr[target_index] = 1
+        dprediction = probs - subtr
+    else:
+        batch_size = preds.shape[0]
+        str_index_arr = np.arange(target_index.shape[0])
+        subtr = np.zeros_like(probs)
+        subtr[(str_index_arr, target_index.flatten())] = 1
+        dprediction = (probs - subtr) / batch_size
+    
+    return loss, dprediction
 
 
 class Param:
@@ -58,8 +120,11 @@ class ReLULayer:
         # TODO: Implement forward pass
         # Hint: you'll need to save some information about X
         # to use it later in the backward pass
-        raise Exception("Not implemented!")
-
+        self.X = X
+        out = np.maximum(self.X, 0) 
+        
+        return out 
+        
     def backward(self, d_out):
         """
         Backward pass
@@ -74,7 +139,11 @@ class ReLULayer:
         """
         # TODO: Implement backward pass
         # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+        X = self.X.copy()
+        X[X <= 0] = 0
+        X[X > 0]  = 1
+        d_result = d_out * X
+        
         return d_result
 
     def params(self):
@@ -91,8 +160,11 @@ class FullyConnectedLayer:
     def forward(self, X):
         # TODO: Implement forward pass
         # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
-
+        self.X = X
+        out = self.X.dot(self.W.value) + self.B.value
+        
+        return out
+        
     def backward(self, d_out):
         """
         Backward pass
@@ -114,8 +186,9 @@ class FullyConnectedLayer:
 
         # It should be pretty similar to linear classifier from
         # the previous assignment
-
-        raise Exception("Not implemented!")
+        self.B.grad = d_out.sum(axis=0, keepdims=True)
+        self.W.grad = self.X.T.dot(d_out)
+        d_input = d_out.dot(self.W.value.T)
 
         return d_input
 
